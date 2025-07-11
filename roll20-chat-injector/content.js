@@ -1,0 +1,1 @@
+console.log('[Roll20 Chat Injector] Content script loaded.');

@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Roll20 Chat Injector Opera GX",
+  "version": "1.1",
+  "description": "Injects messages into Roll20 chat from an external trigger, improved for Opera GX.",
+  "permissions": ["scripting", "activeTab"],
+  "host_permissions": ["https://app.roll20.net/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Roll20 Chat Sender"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://app.roll20.net/editor/*"],
+      "js": ["content.js", "websocket.js"]
+    }
+  ]
+}

@@ -9,4 +9,4 @@
 /dataSources.local.xml
 .idea/
 node_modules/
-constants.json
+config.json

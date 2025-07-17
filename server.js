@@ -1,7 +1,9 @@
 // server.js
 const express = require('express');
+const axios = require('axios');
 const http = require('http');
 const WebSocket = require('ws');
+const { DISCORD_WEBHOOK_URL } = require('./config.json');
 const app = express();
 
 const server = http.createServer(app);
@@ -26,6 +28,26 @@ app.post('/roll', (req, res) => {
     console.log('Sending to extension:', message);
     socketClients.forEach(ws => ws.send(JSON.stringify({ message })));
     res.send({ status: 'sent' });
+});
+
+app.post('/discord', async(req, res) => {
+    console.log(DISCORD_WEBHOOK_URL);
+    const data = req.body;
+    if (!data.content) {
+        data.content = `🎲${data.embeds[0].description || ''} rolls a die!`;
+    }
+    data.embeds[0].description = "Here is what magic of programming can do";
+    console.log('Sending to discord:', data);
+    try {
+        const response = await axios.post(DISCORD_WEBHOOK_URL, data, {
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        res.status(200).send({ status: 'ok', discord_status: response.status });
+    } catch (error) {
+        console.error('Ошибка при отправке в Discord:', error.message);
+        res.status(500).send({ status: 'error', message: error.message });
+    }
 });
 
 server.listen(3000, () => {

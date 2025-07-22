@@ -37,7 +37,7 @@ app.post('/discord', async(req, res) => {
         data.content = `🎲${data.embeds[0].description || ''} rolls a die!`;
     }
     data.embeds[0].description = "Here is what magic of programming can do";
-    console.log('Sending to discord:', data);
+    console.log('Sending to discord:', data.embeds[0].title);
     try {
         const response = await axios.post(DISCORD_WEBHOOK_URL, data, {
             headers: { 'Content-Type': 'application/json' },

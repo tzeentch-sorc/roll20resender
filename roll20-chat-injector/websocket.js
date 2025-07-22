@@ -79,7 +79,7 @@ function injectChatMessage(msg) {
 // Listen for toggle changes
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'sync' && changes.enabled) {
-    console.log("AAAAAAA", changes.enabled);
+    console.log("[Roll20 Chat Injector] Toggle button debug:", changes.enabled);
 
     if (changes.enabled.newValue) {
       connect();
@@ -95,6 +95,6 @@ chrome.storage.onChanged.addListener((changes, area) => {
 
 // Initial state on load
 chrome.storage.sync.get('enabled', ({ enabled }) => {
-  console.log("AAAAAAA", enabled);
+  console.log("[Roll20 Chat Injector] Toggle button debug:", enabled);
   if (enabled) connect();
 });

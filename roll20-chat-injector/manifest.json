@@ -12,6 +12,12 @@
     "default_title": "Roll20 Chat Sender",
     "default_popup": "popup.html"
   },
+  "icons": {
+    "16": "mimic.png",
+    "32": "mimic.png",
+    "48": "mimic.png",
+    "128": "mimic.png"
+  },
   "content_scripts": [
     {
       "matches": ["https://app.roll20.net/editor/*"],

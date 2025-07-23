@@ -3,6 +3,9 @@ const WS_URL = 'ws://localhost:3000';
 let ws;
 
 function connect() {
+  chrome.storage.sync.get('enabled', ({ enabled }) => {
+    console.log('[Roll20 Chat Injector] Content script enabled value:', enabled);
+  });
   console.log('[Roll20 Chat Injector] Connecting to WebSocket...');
   ws = new WebSocket(WS_URL);
 
@@ -20,13 +23,25 @@ function connect() {
     }
   };
 
+
   ws.onerror = (err) => {
     console.error('[Roll20 Chat Injector] WebSocket error:', err);
   };
 
   ws.onclose = () => {
-    console.warn('[Roll20 Chat Injector] WebSocket closed, retrying in 3s...');
-    setTimeout(connect, 3000);
+    ws = null;
+    console.warn('[Roll20 Chat Injector] WebSocket closed');
+    chrome.storage.sync.get('enabled', ({ enabled }) => {
+      if (enabled) {
+        console.warn('[Roll20 Chat Injector] Reconnecting in 3 seconds...');
+        setTimeout(() => {
+          chrome.storage.sync.get('enabled', ({ enabled }) => {
+
+            if (enabled) connect();
+          });
+        }, 3000);
+      }
+    });
   };
 }
 
@@ -61,4 +76,25 @@ function injectChatMessage(msg) {
   });
 }
 
-connect();
+// Listen for toggle changes
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'sync' && changes.enabled) {
+    console.log("[Roll20 Chat Injector] Toggle button debug:", changes.enabled);
+
+    if (changes.enabled.newValue) {
+      connect();
+    } else {
+      if (ws) {
+        ws.close();
+        ws = null;
+        console.log('[Roll20 Chat Injector] WebSocket disconnected');
+      }
+    }
+  }
+});
+
+// Initial state on load
+chrome.storage.sync.get('enabled', ({ enabled }) => {
+  console.log("[Roll20 Chat Injector] Toggle button debug:", enabled);
+  if (enabled) connect();
+});

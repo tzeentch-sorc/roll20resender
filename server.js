@@ -8,6 +8,9 @@ const app = express();
 
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
+const wssDiscord = new WebSocket.Server({ port: 8081 });
+let goClient = null;
+
 
 app.use(express.json());
 
@@ -23,6 +26,11 @@ wss.on('connection', ws => {
     });
 });
 
+wssDiscord.on("connection", (ws) => {
+    console.log("Go webhook handler connected");
+    goClient = ws;
+});
+
 app.post('/roll', (req, res) => {
     const message = req.body.faceValue || '/me 🎲 rolls a die!';
     console.log('Sending to extension:', message);
@@ -30,7 +38,7 @@ app.post('/roll', (req, res) => {
     res.send({ status: 'sent' });
 });
 
-app.post('/discord', async(req, res) => {
+app.post('/discord', async (req, res) => {
     console.log(DISCORD_WEBHOOK_URL);
     const data = req.body;
     if (!data.content) {
@@ -39,11 +47,11 @@ app.post('/discord', async(req, res) => {
     data.embeds[0].description = "Here is what magic of programming can do";
     console.log('Sending to discord:', data.embeds[0].title);
     try {
-        const response = await axios.post(DISCORD_WEBHOOK_URL, data, {
-            headers: { 'Content-Type': 'application/json' },
-        });
-
-        res.status(200).send({ status: 'ok', discord_status: response.status });
+        if (goClient && goClient.readyState === WebSocket.OPEN) {
+            goClient.send(JSON.stringify({ DISCORD_WEBHOOK_URL, data, headers: { 'Content-Type': 'application/json' } }));
+        } else {
+            throw new Error("Go handler not connected");
+        }
     } catch (error) {
         console.error('Ошибка при отправке в Discord:', error.message);
         res.status(500).send({ status: 'error', message: error.message });
